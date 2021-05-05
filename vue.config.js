@@ -36,6 +36,14 @@ module.exports = {
       warnings: false,
       errors: true
     },
+    // 针对开发服务器设置转发配置
+    proxy: {
+      // 这里以key:value 的形式指定需要转向的 url 类型
+      '/api': {
+        target: 'http://ihrm-java.itheima.net',
+        changeOrigin: true // 只有这个值为true的情况下,才表示开启跨域
+      }
+    }
     // before: require('./mock/mock-server.js')
   },
   configureWebpack: {
