@@ -128,8 +128,15 @@ export default {
         this.$refs.password.focus()
       })
     },
-    handleLogin() {
-      this.$store.dispatch('user/loginHandle', this.loginForm)
+    async handleLogin() {
+      // 校验表单的validate函数
+      await this.$refs.loginForm.validate()
+      // 显示加载中的状态
+      this.loading = true
+      // 发请求
+      await this.$store.dispatch('user/loginHandle', this.loginForm)
+      this.loading = false
+      this.$router.push('/')
       // this.$refs.loginForm.validate(valid => {
       //   if (valid) {
       //     this.loading = true

@@ -7,12 +7,17 @@ export function login(data) {
     data
   })
 }
-
-export function getInfo(token) {
+// 获取用户资料
+export function getUserInfo() {
   return request({
-    url: '/vue-admin-template/user/info',
-    method: 'get',
-    params: { token }
+    url: '/sys/profile',
+    method: 'post'
+  })
+}
+// 根据id获取用户详细资料
+export function getUserDetailById(id) {
+  return request({
+    url: '/sys/user/' + id
   })
 }
 

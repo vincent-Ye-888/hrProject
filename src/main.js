@@ -35,6 +35,11 @@ Vue.use(ElementUI, { locale })
 
 Vue.config.productionTip = false
 
+// 注册全局自定义指令
+// Vue.directive('指令名称', '指令配置')
+import { imgerr } from '@/directive/index'
+Vue.directive('imgerr', imgerr)
+
 new Vue({
   el: '#app',
   router,
