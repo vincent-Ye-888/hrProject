@@ -18,9 +18,9 @@
             </span>
             <!-- 下拉菜单 -->
             <el-dropdown-menu slot="dropdown">
-              <el-dropdown-item>添加子部门</el-dropdown-item>
-              <el-dropdown-item v-if="isRoot">编辑部门</el-dropdown-item>
-              <el-dropdown-item v-if="isRoot">删除部门</el-dropdown-item>
+              <el-dropdown-item @click.native="addDepartment">添加子部门</el-dropdown-item>
+              <el-dropdown-item v-if="!isRoot" @click.native="editDepartment">编辑部门</el-dropdown-item>
+              <el-dropdown-item v-if="!isRoot" @click.native="delDepartment">删除部门</el-dropdown-item>
             </el-dropdown-menu>
           </el-dropdown>
         </el-col>
@@ -30,6 +30,7 @@
 </template>
 
 <script>
+import { delDepartments } from '@/api/departments'
 // 该组件需要对外开放属性 外部需要提供一个对象 对象里需要有name  manager
 export default {
   // props可以用数组来接收数据 也可以用对象来接收
@@ -43,6 +44,30 @@ export default {
     isRoot: {
       type: Boolean,
       required: true
+    }
+  },
+  methods: {
+    // 子传父,在这个子组件内无法触发click事件,要传给父组件触发点击事件
+    async delDepartment() {
+      try {
+        // 二次校验
+        await this.$confirm('是否确认删除')
+        // 核心就是发请求
+        await delDepartments(this.treeNode.id)
+        // 提示用户
+        this.$message.success('删除成功')
+        // 更新页面,delDepartment 传递给父组件监听的名字
+        this.$emit('delDepartment')
+      } catch (error) {
+        console.log(error)
+      }
+    },
+    async addDepartment() {
+      // 更新页面,delDepartment 传递给父组件监听的名字
+      this.$emit('addDepartment', this.treeNode)
+    },
+    async editDepartment() {
+      this.$emit('editDepartment', this.treeNode)
     }
   }
 }

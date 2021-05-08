@@ -115,3 +115,25 @@ export function param2Obj(url) {
   })
   return obj
 }
+
+// 将部门扁平数据转换为树形结构
+// 顶级部门的pid是空值
+export function listToTreeData(list, pid) {
+  // 1.遍历列表所有元素
+  list.forEach(item => {
+    // 2.顶级部门不管,只找属于别人子部门的元素
+    if (item.pid !== pid) {
+      // 3.找到父部门并加入到数组里面
+      const parent = list.find(el => el.id === item.pid)
+      // console.log(parent)
+      if (parent) {
+        // 4.不一定有children,做一个保底默认值
+        parent.children = parent.children || []
+        parent.children.push(item)
+        // console.log(parent.children)
+      }
+    }
+  })
+  // 5.return在顶级数据中,要将刚刚被放入children的属于其他部门的子部门过滤掉
+  return list.filter(item => item.pid === pid)
+}
