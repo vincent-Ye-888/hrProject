@@ -35,6 +35,21 @@ Vue.use(ElementUI, { locale })
 
 Vue.config.productionTip = false
 
+// 全局注册组件,方便全部vue使用
+// import PageTools from '@/components/PageTools'
+// Vue.component('PageTools', PageTools)
+// // vue 提供了一个 use 函数
+// // 可以往里丢一个插件对象
+// // use 会自动运行对象的 install 方法
+// // 所有你要做的事情都可以封装在里面
+// // Vue.component 注册再多组件, 都可以封装在里面
+// // 最终在 main.js 只需要 一个 use 即可
+// Vue.use = function(obj) {
+//   obj.install(Vue)
+// }
+import myComponents from '@/components'
+Vue.use(myComponents)
+
 // 注册全局自定义指令
 // Vue.directive('指令名称', '指令配置')
 import { imgerr } from '@/directive/index'

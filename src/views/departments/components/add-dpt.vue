@@ -65,7 +65,6 @@ export default {
       let isRepeat = false
       if (this.formData.id) {
         // 编辑
-
         isRepeat = depts
         // 当前的treeNode.pid才是父部门
           .filter(item => item.pid === this.treeNode.pid && item.id !== this.treeNode.id)
