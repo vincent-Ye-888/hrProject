@@ -5,13 +5,13 @@
     <!-- 匿名插槽 -->
     <!-- model 表单数据对象; rules 表单验证规则 -->
     <el-form ref="addDept" :model="formData" label-width="120px" :rules="rules">
-      <el-form-item prop="name" label="部门名称">
+      <el-form-item label="部门名称" prop="name">
         <el-input v-model.trim="formData.name" style="width:80%" placeholder="1-50个字符" />
       </el-form-item>
-      <el-form-item prop="code" label="部门编码">
+      <el-form-item label="部门编码" prop="code">
         <el-input v-model.trim="formData.code" style="width:80%" placeholder="1-50个字符" />
       </el-form-item>
-      <el-form-item prop="manager" label="部门负责人">
+      <el-form-item label="部门负责人" prop="manager">
         <el-select
           v-model="formData.manager"
           style="width:80%"
@@ -22,7 +22,7 @@
           <el-option v-for="item in employeeList" :key="item.id" :value="item.username" :label="item.username" />
         </el-select>
       </el-form-item>
-      <el-form-item prop="introduce" label="部门介绍">
+      <el-form-item label="部门介绍" prop="introduce">
         <el-input v-model.trim="formData.introduce" style="width:80%" placeholder="1-300个字符" type="textarea" :rows="3" />
       </el-form-item>
     </el-form>
@@ -68,7 +68,7 @@ export default {
 
         isRepeat = depts
         // 当前的treeNode.pid才是父部门
-          .filter(item => item.id === this.treeNode.pid && item.id !== this.treeNode.id)
+          .filter(item => item.pid === this.treeNode.pid && item.id !== this.treeNode.id)
         // 找一找是否存在跟当前用户输入值相同的名称 得到布尔值
           .some(item => item.name === value)
       } else {
@@ -109,12 +109,12 @@ export default {
         name: [
           { required: true, message: '该项不能为空', trigger: 'blur' },
           { max: 50, message: '不能超过50个字符', trigger: 'blur' },
-          { trigger: 'blur', vaildator: checkRepeatName }
+          { trigger: 'blur', validator: checkRepeatName }
         ],
         code: [
           { required: true, message: '该项不能为空', trigger: 'blur' },
           { max: 50, message: '不能超过50个字符', trigger: 'blur' },
-          { trigger: 'blur', vaildator: checkRepeatCode }
+          { trigger: 'blur', validator: checkRepeatCode }
         ],
         manager: [{ required: true, message: '该项不能为空', trigger: 'blur' }],
         introduce: [
