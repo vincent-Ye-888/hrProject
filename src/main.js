@@ -55,6 +55,15 @@ Vue.use(myComponents)
 import { imgerr } from '@/directive/index'
 Vue.directive('imgerr', imgerr)
 
+// 注册全局的过滤器
+import * as filters from '@/filters'
+// Vue.filter (函数名,函数体) 就可以注册过滤器
+// Object.keys()返回的正是一个对象 属性 数组
+Object.keys(filters).forEach(key => {
+  // 注册过滤器
+  Vue.filter(key, filters[key])
+})
+
 new Vue({
   el: '#app',
   router,
