@@ -68,9 +68,10 @@ export const constantRoutes = [
       component: () => import('@/views/import'),
       meta: { title: '导入' }
     }]
-  },
+  }
   // 404 page must be placed at the end !!!
-  { path: '*', redirect: '/404', hidden: true }
+  // 现在还要等路由守卫筛选动态路由后才能判断到底是不是 404
+  // { path: '*', redirect: '/404', hidden: true }
 ]
 
 // 引入多个模块的规则
@@ -98,7 +99,8 @@ export const asyncRoutes = [
 const createRouter = () => new Router({
   // mode: 'history', // require service support
   scrollBehavior: () => ({ y: 0 }),
-  routes: [...constantRoutes, ...asyncRoutes]
+  // routes: [...constantRoutes, ...asyncRoutes]
+  routes: [...constantRoutes]
 })
 
 const router = createRouter()

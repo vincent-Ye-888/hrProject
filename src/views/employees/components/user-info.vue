@@ -1,5 +1,12 @@
 <template>
   <div class="user-info">
+    <el-row type="flex" justify="end">
+      <el-tooltip content="打印个人基本信息">
+        <router-link :to="`/employees/print/${userId}?tyoe = personal`">
+          <i class="el-icon-printer" />
+        </router-link>
+      </el-tooltip>
+    </el-row>
     <!-- 个人信息 -->
     <el-form label-width="220px">
       <!-- 工号 入职时间 -->
@@ -58,7 +65,7 @@
         <el-col :span="12">
           <el-form-item label="员工头像">
             <!-- 放置上传图片 -->
-
+            <ImageUpload ref="userInfoPhoto" />
           </el-form-item>
         </el-col>
       </el-row>
@@ -87,9 +94,9 @@
         </el-form-item>
         <!-- 个人头像 -->
         <!-- 员工照片 -->
-
         <el-form-item label="员工照片">
           <!-- 放置上传图片 -->
+          <ImageUpload ref="formDataPhoto" />
         </el-form-item>
         <el-form-item label="国家/地区">
           <el-select v-model="formData.nationalArea" class="inputW2">
@@ -365,18 +372,58 @@ export default {
     //   针对userInfo 表单的读取以及修改的操作封装
     async getUserDetailById() {
       this.userInfo = await getUserDetailById(this.userId)
+      // console.log(this.userInfo)
+      // 进入页面时如果有上传过图片就回显图片
+      if (this.userInfo.staffPhoto) {
+        this.$refs.userInfoPhoto.fileList = [
+          {
+            url: this.userInfo.staffPhoto
+          }
+        ]
+      }
     },
     async saveUser() {
+      // 保存前需要获取配套的上传文件组件的文件列表
+      const fileList = this.$refs.userInfoPhoto.fileList
+      // 处理图片未上传成功的情况
+      if (fileList[0] && fileList[0].status !== 'success') {
+        this.$message.warning('图片未上传完成')
+        return
+      }
+      // console.log(fileList)
       //  调用父组件
-      await saveUserDetailById(this.userInfo)
+      await saveUserDetailById({
+        ...this.userInfo,
+        staffPhoto: fileList[0] ? fileList[0].url : ''
+      })
       this.$message.success('保存成功')
     },
     // 针对formData表单的读取和修改操作的封装
     async getPersonalDetail() {
       this.formData = await getPersonalDetail(this.userId) // 获取员工数据
+      // console.log(this.formData)
+      // 进入页面时如果有上传过图片就回显图片
+      if (this.formData.staffPhoto) {
+        this.$refs.formDataPhoto.fileList = [
+          {
+            url: this.formData.staffPhoto
+          }
+        ]
+      }
     },
     async savePersonal() {
-      await updatePersonal({ ...this.formData, id: this.userId })
+      // 保存前需要获取上传文件组件的文件列表
+      const fileList = this.$refs.formDataPhoto.fileList
+      // 处理图片上传不成功的情况
+      if (fileList[0] && fileList[0].status !== 'success') {
+        this.$message.warning('图片未上传完成')
+        return
+      }
+      await updatePersonal({
+        ...this.formData,
+        id: this.userId,
+        staffPhoto: fileList[0] ? fileList[0].url : ''
+      })
       this.$message.success('保存成功')
     }
   }

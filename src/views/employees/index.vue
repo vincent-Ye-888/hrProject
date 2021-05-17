@@ -8,7 +8,7 @@
         <template slot="after">
           <el-button size="small" type="warning" @click="$router.push('/import')">导入</el-button>
           <el-button size="small" type="danger" @click="exportEmployee">导出</el-button>
-          <el-button size="small" type="primary" @click="showDialog= true">新增员工</el-button>
+          <el-button v-if="checkPermission('addEmployee')" size="small" type="primary" @click="showDialog= true">新增员工</el-button>
         </template>
       </page-tools>
       <!-- 放置表格和分页 -->
@@ -21,6 +21,11 @@
               再次基础上, 当前页再 +1 +2 以此类推 -->
               <!-- 或者可以这么想, 前面所有的总条数基础上 +1 +2 .... -->
               {{ ((page.page - 1) * page.size) + (scope.$index + 1) }}
+            </template>
+          </el-table-column>
+          <el-table-column label="头像" align="center" width="200">
+            <template slot-scope="{row}">
+              <img v-imgerr="require('@/assets/common/head.jpg')" class="avatar" :src="row.staffPhoto" @click="showQRcode(row.staffPhoto)">
             </template>
           </el-table-column>
           <el-table-column label="姓名" sortable="" prop="username" />
@@ -46,7 +51,7 @@
               <el-button type="text" size="small">转正</el-button>
               <el-button type="text" size="small">调岗</el-button>
               <el-button type="text" size="small">离职</el-button>
-              <el-button type="text" size="small">角色</el-button>
+              <el-button type="text" size="small" @click="assignRole(row.id)">角色</el-button>
               <el-button type="text" size="small" @click="deleteEmployee(row.id)">删除</el-button>
             </template>
           </el-table-column>
@@ -64,6 +69,14 @@
       </el-card>
       <!-- 放置新增按钮的组件 -->
       <AddDempolyee :show-dialog="showDialog" />
+
+      <el-dialog title="头像预览" :visible="isShowQRcode" @close="isShowQRcode = false">
+        <el-row type="flex" justify="center">
+          <canvas ref="mycanvas" />
+        </el-row>
+      </el-dialog>
+      <!-- 角色弹窗 :user-id / :show-role-dialog 均对应子组件的props -->
+      <AssignRole ref="assignRole" :user-id="userId" :show-role-dialog.sync="showRoleDialog" />
     </div>
   </div>
 </template>
@@ -76,11 +89,16 @@ import { formatDate } from '@/filters'
 // 可以进行优化
 // import { export_json_to_excel } from '@/vendor/Export2Excel'
 import AddDempolyee from './components/add-employee'
+import AssignRole from './components/assign-role'
+import QRcode from 'qrcode'
 export default {
-  components: { AddDempolyee },
+  components: { AddDempolyee, AssignRole },
   data() {
     return {
+      isShowQRcode: false,
       showDialog: false,
+      showRoleDialog: false,
+      userId: '',
       loading: false,
       list: [], // 用于 接收数据并渲染
       page: {
@@ -94,6 +112,32 @@ export default {
     this.getEmployeeList()
   },
   methods: {
+    checkPermission(pointName) {
+      // 这里是判断当前用户是否有权限的函数
+      // 如果这个权限点名称存在于用户数据的points 权限数组中就可以点击
+      // 否则则不能
+      return this.$store.getters.roles && this.$store.getters.roles.points.includes(pointName)
+    },
+    async assignRole(id) {
+      // console.log(id)
+      this.userId = id
+      await this.$refs.assignRole.getUserDetailById(id)
+      this.showRoleDialog = true
+    },
+    showQRcode(url) {
+      if (url) {
+        this.isShowQRcode = true
+        this.$nextTick(() => {
+          QRcode.toCanvas(this.$refs.mycanvas, url, {
+            width: 300,
+            color: {
+              dark: 'blue'
+            }
+          })
+        })
+      }
+    },
+
     async exportEmployee() {
       // 这里是按钮被点击, 可以就在这里单独引入需要的库
       const { export_json_to_excel } = await import('@/vendor/Export2Excel')
@@ -112,6 +156,8 @@ export default {
       const userData = rows.map(user => {
         return this.object2Arrayy(user, dict)
       })
+      // console.log(Object.keys(dict))
+      // console.log(userData)
       export_json_to_excel({
         header: Object.keys(dict),
         data: userData
@@ -123,10 +169,11 @@ export default {
         const enkey = dict[key]
         const value = user[enkey]
         if (enkey === 'timeOfEntry' || enkey === 'correctionTime') {
-          return newUser.push(new Date(formatDate(value)))
+          newUser.push(new Date(formatDate(value)))
         } else if (enkey === 'formOfEmployment') {
           const obj = EmployeeEnum.hireType.find(item => item.id === value)
-          return newUser.push(obj ? obj.value : '未知')
+          newUser.push(obj ? obj.value : '未知')
+          // console.log(newUser)
         } else {
           newUser.push(value)
         }
@@ -170,6 +217,10 @@ export default {
 }
 </script>
 
-<style lang="less" scoped>
-
+<style lang="scss" scoped>
+  .avatar{
+    width: 200px;
+    height: 200px;
+    object-fit: cover;
+  }
 </style>

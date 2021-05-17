@@ -26,9 +26,24 @@ router.beforeEach(async(to, from, next) => {
       // 直接判断一个空对象, 其实永远是 true
       if (!store.state.user.userInfo.userId) {
         // 只能判断里面的其中一个属性在不在,没有属性,再发请求
-        await store.dispatch('user/getUserInfo')
+        const res = await store.dispatch('user/getUserInfo')
+        // 如果 action return 了数据, 这边可以直接获取
+        console.log('触发筛选过程')
+        const routes = await store.dispatch('permission/filterRoutes', res.roles.menus)
+        // store.state.user.userInfo.roles.menus
+        // router.addRoutes(routes)
+        router.addRoutes([...routes, { path: '*', redirect: '/404', hidden: true }])
+        // router.addRoutes([{ path: '*', redirect: '/404', hidden: true }])
+        // 这里是第一次进入页面(刷新)获取用户资料
+        // 用户资料里面有权限列表可以用来做筛选
+        // 将筛选的逻辑放入到 vuex 里面
+        // 需要准备两个数据 1. 全部的动态路由列表 2. 当前用户的信息
+        // 如果是添加的路由, 添加的时间点其实晚于匹配过程, 发现一片空白
+        // 需要在当前的目的地路径中原地跳一次, 重新触发匹配过程才行
+        next(to.path)
+      } else {
+        next()
       }
-      next()
     }
   } else {
     // 没有token

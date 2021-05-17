@@ -23,7 +23,7 @@
                 <!-- 表格内容是动态渲染的,唯有通过作用域插槽来获取当前列的数据
                 在饿了么组件内部会通过作用域插槽返回当前列的id -->
                 <template #default="{row}">
-                  <el-button size="small" type="success">分配权限</el-button>
+                  <el-button size="small" type="success" @click="assignPerm(row.id)">分配权限</el-button>
                   <el-button size="small" type="primary" @click="editRole(row.id)">编辑</el-button>
                   <el-button size="small" type="danger" @click="deleteRole(row.id)">删除</el-button>
                 </template>
@@ -99,12 +99,40 @@
           </el-col>
         </el-row>
       </el-dialog>
+      <el-dialog title="分配权限" :visible="showPermDialog" @close="btnPermCancel">
+        <!-- 权限是一颗树 -->
+        <!-- 将数据绑定到组件上 -->
+        <!-- check-strictly 如果为true 那表示父子勾选时  不互相关联 如果为false就互相关联 -->
+        <!-- id作为唯一标识 -->
+        <!-- 这里并没有 v-model 的双向绑定
+        无论设置绑定还是获取绑定数据, 都靠函数
+        对象中的那个值作为记录的标识, 需要 node-key 进行设定 -->
+        <el-tree
+          ref="permTree"
+          :data="permData"
+          :props="defaultProps"
+          :show-checkbox="true"
+          :check-strictly="true"
+          :default-expand-all="true"
+          :default-checked-keys="selectCheck"
+          node-key="id"
+        />
+        <!-- 确定 取消 -->
+        <el-row slot="footer" type="flex" justify="center">
+          <el-col :span="6">
+            <el-button type="primary" size="small" @click="btnPermOK">确定</el-button>
+            <el-button size="small" @click="btnPermCancel">取消</el-button>
+          </el-col>
+        </el-row>
+      </el-dialog>
     </div>
   </div>
 </template>
 
 <script>
-import { getCompanyInfo, getRoleList, deleteRole, updateRole, getRoleDetail, addRole } from '@/api/setting'
+import { getCompanyInfo, getRoleList, deleteRole, updateRole, getRoleDetail, addRole, assignPermission } from '@/api/setting'
+import { getPermissionList } from '@/api/permission'
+import { listToTreeData } from '@/utils'
 export default {
   data() {
     const checkRepeatName = async(rule, value, callback) => {
@@ -144,7 +172,14 @@ export default {
         discription: [
           { required: true, message: '该项不能为空', trigger: 'blur' }
         ]
-      }
+      },
+      showPermDialog: false, // 控制分配权限弹层的显示后者隐藏
+      defaultProps: {
+        label: 'name'
+      },
+      permData: [], // 专门用来接收权限数据 树形数据
+      selectCheck: [], // 定义一个数组来接收 已经选中的节点
+      roleId: '' // 用来记录分配角色的id
     }
   },
   computed: {
@@ -223,6 +258,39 @@ export default {
       this.$refs.roleForm.resetFields()
       // 关闭弹窗
       this.showDialog = false
+    },
+    async assignPerm(id) {
+      this.roleId = id
+      // 点击获取全部权限列表
+      this.permData = listToTreeData(await getPermissionList(), '0')
+      // 获取当前被点击的角色的权限列表
+      const { permIds } = await getRoleDetail(id)
+      // 弹窗
+      this.showPermDialog = true
+      this.$nextTick(() => {
+        this.$refs.permTree.setCheckedKeys(permIds)
+      })
+    },
+    async btnPermOK() {
+      // 发请求
+      // 1.拿到数据 2.发送api请求
+      // const id = this.roleId
+      // const permIds = this.$refs.permTree.getCheckedKeys()
+      // console.log(id, permIds)
+      await assignPermission({
+        id: this.roleId,
+        permIds: this.$refs.permTree.getCheckedKeys()
+      })
+      // 提醒用户
+      this.$message.success('操作成功')
+      // 关闭弹窗
+      this.showPermDialog = false
+    },
+    btnPermCancel() {
+      // 清空数据
+      this.$refs.permTree.setCheckedKeys([])
+      // 关闭弹窗
+      this.showPermDialog = false
     }
   }
 }
